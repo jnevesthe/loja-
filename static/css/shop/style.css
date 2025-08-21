@@ -1,0 +1,149 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* BODY */
+body {
+    font-family: Arial, sans-serif;
+    background-color: black;
+    color: white;
+    overflow-x: hidden;
+    padding: 0 10px;
+}
+
+/* HEADER */
+.site-header {
+    background: linear-gradient(90deg, orange, darkorange);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+    color: white;
+    text-shadow: 0px 0px 10px #ffb84d;
+}
+
+.site-nav a {
+    color: white;
+    text-decoration: none;
+    margin-left: 20px;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.site-nav a:hover {
+    color: yellow;
+}
+
+/* HERO */
+.hero-section {
+    text-align: center;
+    margin-top: 5vh;
+}
+
+/* PRODUTOS */
+.product-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.product-card {
+    background-color: #111;
+    border-radius: 12px;
+    padding: 15px;
+    width: 250px;
+    text-align: center;
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.4);
+}
+
+.product-card img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.product-card h3 {
+    color: orange;
+    margin-bottom: 5px;
+}
+
+.product-card p {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.btn {
+    background-color: orange;
+    color: black;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 165, 0, 1);
+    color: white;
+}
+
+/* CARRINHO */
+.cart-container {
+    margin-top: 30px;
+    background-color: #111;
+    padding: 15px;
+    border-radius: 12px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cart-container ul {
+    list-style: none;
+    margin-bottom: 10px;
+}
+
+.cart-container li {
+    margin-bottom: 5px;
+}
+
+/* FOOTER */
+.site-footer {
+    background-color: #222;
+    padding: 15px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* RESPONSIVO */
+@media (max-width: 480px) {
+    .site-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .site-nav a {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+
+    .product-card {
+        width: 90%;
+    }
+
+    .btn {
+        width: 100%;
+    }
+}

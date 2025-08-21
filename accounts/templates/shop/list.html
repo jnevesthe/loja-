@@ -1,0 +1,91 @@
+{% extends 'shop/base.html' %}
+
+{% block title %}Loja{% endblock %}
+
+{% block main %}
+<h2 class="hero-section">Produtos Disponíveis</h2>
+
+<div class="product-container">
+    {% for product in products %}
+    <div class="product-card">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        {% endif %}
+        <h3>{{ product.name }} - R$ {{ product.price }}</h3>
+        <p class="short-desc">{{ product.description|truncatechars:50 }}</p>
+
+        <!-- Botão Ver Mais -->
+        <a href="{% url 'detail' product.id %}" class="btn">Ver mais</a>
+
+        <!-- Botão Adicionar ao Carrinho -->
+        <button type="button" class="btn add-cart" 
+            data-id="{{ product.id }}" 
+            data-name="{{ product.name }}" 
+            data-price="{{ product.price }}">
+            Adicionar
+        </button>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Carrinho -->
+<div class="cart-container">
+    <h3>Carrinho</h3>
+    <ul id="cart-items"></ul>
+    <p><strong>Total:</strong> R$ <span id="cart-total">0.00</span></p>
+    <button id="finalize-cart" class="btn">Finalizar Pedido</button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    let cart = [];
+    const cartItems = document.getElementById('cart-items');
+    const cartTotal = document.getElementById('cart-total');
+
+    function updateCart() {
+        cartItems.innerHTML = '';
+        let total = 0;
+        cart.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.name} x ${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`;
+            cartItems.appendChild(li);
+            total += item.price * item.quantity;
+        });
+        cartTotal.textContent = total.toFixed(2);
+    }
+
+    document.querySelectorAll('.add-cart').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+            const price = parseFloat(btn.dataset.price);
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                cart.push({id, name, price, quantity: 1});
+            }
+            updateCart();
+
+            // Salva o pedido no banco via AJAX
+            fetch("{% url 'add_to_cart' 0 %}".replace('0', id), {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: 1 })
+            }).then(response => response.json())
+            .then(data => {
+                console.log('Pedido adicionado:', data);
+            });
+        });
+    });
+
+    document.getElementById('finalize-cart').addEventListener('click', () => {
+        alert('Pedidos adicionados com sucesso!');
+    });
+});
+</script>
+
+{% endblock %}

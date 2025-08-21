@@ -1,0 +1,17 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+<div class="hero-section">
+    <h2 class="fade-in">Bem-vindo!</h2>
+    <p class="fade-in delay">Escolha uma opção abaixo:</p>
+
+    <div class="button-container zoom-in">
+        <a href="{% url  'signin' %}" class="btn pulse">Registrar</a>
+        <a href="{% url 'login' %}" class="btn pulse">Login</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

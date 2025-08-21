@@ -1,0 +1,122 @@
+{% extends "accounts/base.html" %}
+{% load static %}
+
+{% block title %}Editar Perfil{% endblock %}
+
+{% block main %}
+<style>
+/* FORMULÁRIO */
+.edit-form-container {
+    max-width: 500px;
+    margin: 5vh auto;
+    padding: 25px;
+    background-color: #111;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255,165,0,0.4);
+    animation: fade-in 1s ease-out;
+}
+
+.edit-form-container h2 {
+    margin-bottom: 20px;
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: orange;
+    text-shadow: 0px 0px 5px #ffb84d;
+    animation: glow 2s infinite alternate;
+}
+
+.edit-form-container form input,
+.edit-form-container form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.edit-form-container form input:focus,
+.edit-form-container form select:focus {
+    outline: none;
+    border-color: orange;
+    box-shadow: 0 0 10px orange;
+}
+
+.edit-form-container button {
+    background-color: orange;
+    color: black;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.edit-form-container button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 0px 15px rgba(255,165,0,0.8);
+    color: white;
+}
+
+.edit-form-container a {
+    display: inline-block;
+    margin-top: 15px;
+    color: orange;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.edit-form-container a:hover {
+    color: yellow;
+}
+
+/* ANIMAÇÕES */
+@keyframes glow {
+    from { text-shadow: 0px 0px 5px orange; }
+    to { text-shadow: 0px 0px 15px yellow; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 480px) {
+    .edit-form-container {
+        width: 90%;
+        padding: 15px;
+    }
+
+    .edit-form-container h2 {
+        font-size: 1.5rem;
+    }
+
+    .edit-form-container form input,
+    .edit-form-container form select {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+
+    .edit-form-container button {
+        width: 100%;
+        font-size: 0.9rem;
+    }
+}
+</style>
+
+<div class="hero-section edit-form-container">
+    <h2>Editar Perfil</h2>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar</button>
+    </form>
+    <a href="{% url 'profile' %}">Voltar</a>
+</div>
+
+{% endblock %}
+
+{% block footer %}{% endblock %}
