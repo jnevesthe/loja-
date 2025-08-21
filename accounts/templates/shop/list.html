@@ -5,9 +5,14 @@
 {% block main %}
 <h2 class="hero-section">Produtos Disponíveis</h2>
 
-<div class="product-container">
+<!-- Barra de Pesquisa -->
+<div style="text-align:center; margin-bottom:20px;">
+    <input type="text" id="search-bar" placeholder="Buscar produto..." style="padding:10px; width:60%; max-width:400px; border:1px solid #ccc; border-radius:5px;">
+</div>
+
+<div class="product-container" id="product-container">
     {% for product in products %}
-    <div class="product-card">
+    <div class="product-card" data-name="{{ product.name|lower }}">
         {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.name }}">
         {% endif %}
@@ -41,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cart = [];
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
+    const searchBar = document.getElementById('search-bar');
 
     function updateCart() {
         cartItems.innerHTML = '';
@@ -84,6 +90,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('finalize-cart').addEventListener('click', () => {
         alert('Pedidos adicionados com sucesso!');
+    });
+
+    // Filtro de pesquisa
+    searchBar.addEventListener('keyup', () => {
+        const term = searchBar.value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     });
 });
 </script>
