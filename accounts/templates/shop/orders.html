@@ -24,6 +24,7 @@
         <h3>{{ order.product.name }} - R$ {{ order.product.price }}</h3>
         <p>{{ order.product.description|truncatechars:80 }}</p>
         <p><strong>Quantidade:</strong> {{ order.quantity }}</p>
+        <p><strong>Valor Total:</strong> R$ {{ order.total_price }}</p>
         <p><strong>Status:</strong> {{ order.status }}</p>
         <p><strong>Data do Pedido:</strong> {{ order.created_at|date:"d/m/Y H:i" }}</p>
     </div>
