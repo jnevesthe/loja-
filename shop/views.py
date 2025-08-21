@@ -6,8 +6,12 @@ from .models import Product, Order
 # Lista de produtos na loja (sem login obrigatório)
 def list(request):
     products = Product.objects.all()
-    return render(request, 'shop/list.html', {'products': products})
-
+    user_logged = request.user.is_authenticated  # True se logado, False se não
+    return render(request, 'shop/list.html', {
+        'products': products,
+        'user_logged': user_logged
+    })
+    
 # Página de pedidos do usuário (login obrigatório)
 @login_required(login_url='accounts/login/')
 def orders(request):
