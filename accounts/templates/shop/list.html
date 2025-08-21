@@ -88,8 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Finalizar pedido com checagem de login
     document.getElementById('finalize-cart').addEventListener('click', () => {
-        alert('Pedidos adicionados com sucesso!');
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
+        if (!isAuthenticated) {
+            // Redireciona para login com ?next para voltar depois
+            window.location.href = "{% url 'login' %}?next={% url 'list' %}";
+        } else {
+            alert('Pedidos adicionados com sucesso!');
+            // Aqui você pode redirecionar para a página de pedidos ou perfil
+            window.location.href = "{% url 'profile' %}";
+        }
     });
 
     // Filtro de pesquisa
