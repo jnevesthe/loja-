@@ -2,8 +2,24 @@
 
 {% block title %}Loja{% endblock %}
 
+<style>
+    .cart-container {
+    position: fixed; /* fixo no body/viewport */
+    top: 20px;       /* distância do topo */
+    right: 20px;     /* distância da direita */
+    width: 250px;    /* largura do carrinho */
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;   /* garante que fica acima de outros elementos */
+    }
+</style>
+
 {% block main %}
 <h2 class="hero-section">Produtos Disponíveis</h2>
+
 
 <!-- Barra de Pesquisa -->
 <div style="text-align:center; margin-bottom:20px;">
