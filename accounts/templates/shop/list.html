@@ -2,12 +2,33 @@
 
 {% block title %}Loja{% endblock %}
 
+<style>
+    .cart-container {
+    position: fixed; /* fixo no body/viewport */
+    top: 20px;       /* distância do topo */
+    right: 20px;     /* distância da direita */
+    width: 250px;    /* largura do carrinho */
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;   /* garante que fica acima de outros elementos */
+    }
+</style>
+
 {% block main %}
 <h2 class="hero-section">Produtos Disponíveis</h2>
 
-<div class="product-container">
+
+<!-- Barra de Pesquisa -->
+<div style="text-align:center; margin-bottom:20px;">
+    <input type="text" id="search-bar" placeholder="Buscar produto..." style="padding:10px; width:60%; max-width:400px; border:1px solid #ccc; border-radius:5px;">
+</div>
+
+<div class="product-container" id="product-container">
     {% for product in products %}
-    <div class="product-card">
+    <div class="product-card" data-name="{{ product.name|lower }}">
         {% if product.image %}
         <img src="{{ product.image.url }}" alt="{{ product.name }}">
         {% endif %}
@@ -16,6 +37,8 @@
 
         <!-- Botão Ver Mais -->
         <a href="{% url 'detail' product.id %}" class="btn">Ver mais</a>
+        <br/>
+        <br/>
 
         <!-- Botão Adicionar ao Carrinho -->
         <button type="button" class="btn add-cart" 
@@ -41,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let cart = [];
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
+    const searchBar = document.getElementById('search-bar');
 
     function updateCart() {
         cartItems.innerHTML = '';
@@ -82,8 +106,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Finalizar pedido com checagem de login
     document.getElementById('finalize-cart').addEventListener('click', () => {
-        alert('Pedidos adicionados com sucesso!');
+        const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
+        if (!isAuthenticated) {
+            // Redireciona para login com ?next para voltar depois
+            window.location.href = "{% url 'login' %}?next={% url 'list' %}";
+        } else {
+            alert('Pedidos adicionados com sucesso!');
+            // Aqui você pode redirecionar para a página de pedidos ou perfil
+            window.location.href = "{% url 'profile' %}";
+        }
+    });
+
+    // Filtro de pesquisa
+    searchBar.addEventListener('keyup', () => {
+        const term = searchBar.value.toLowerCase();
+        document.querySelectorAll('.product-card').forEach(card => {
+            const name = card.getAttribute('data-name');
+            if (name.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
     });
 });
 </script>

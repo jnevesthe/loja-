@@ -12,6 +12,7 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('profile/', views.profile, name='profile'),
     path('edit/', views.edit, name='edit'),
+    #path('login/', FormLoginView.as_view(), name='login'),
 
 ]
 

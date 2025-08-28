@@ -4,6 +4,8 @@ from  django.views.generic import TemplateView
 from django.contrib.auth import login, logout, authenticate 
 from django.contrib.auth.decorators import login_required
 
+
+
 class Home(TemplateView):
 
     template_name="accounts/home.html"
@@ -46,8 +48,8 @@ def logout_view(request):
 @login_required                                
 def profile(request):
     return render(request, 'accounts/profile.html')   
+      
     
-
     
 def edit(request):
 
@@ -56,13 +58,15 @@ def edit(request):
         form=EditProfile(request.POST, request.FILES, request.user) 
         
         if form.is_valid():
-            form.save()
+            form.update()
             return redirect('profile')    
                                                                            
     else:
         form=EditProfile(instance=request.user)                                                 
                 
-    return render(request, 'accounts/edit.html', {'form':form})                    
+    return render(request, 'accounts/edit.html', {'form':form}) 
+    
+                                          
                         
                                 
     

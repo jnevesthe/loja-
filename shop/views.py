@@ -6,16 +6,20 @@ from .models import Product, Order
 # Lista de produtos na loja (sem login obrigatório)
 def list(request):
     products = Product.objects.all()
-    return render(request, 'shop/list.html', {'products': products})
-
+    user_logged = request.user.is_authenticated  # True se logado, False se não
+    return render(request, 'shop/list.html', {
+        'products': products,
+        'user_logged': user_logged
+    })
+    
 # Página de pedidos do usuário (login obrigatório)
-@login_required
+@login_required(login_url='accounts/login/')
 def orders(request):
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'shop/orders.html', {'orders': orders})
 
 # Adicionar produto ao pedido via AJAX (login obrigatório)
-@login_required
+@login_required(login_url='accounts/login/')
 def add_to_cart(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
