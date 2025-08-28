@@ -3,6 +3,7 @@ from .forms import Register, EditProfile
 from  django.views.generic import TemplateView  
 from django.contrib.auth import login, logout, authenticate 
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 
 
@@ -36,10 +37,12 @@ def login_view(request):
             login(request, user)
             return redirect('profile')
         else:
-                error="Usuario ou Senha erradas"
+                messages.error(request, "Usuário ou Senha incorreta!!!")
+                return render(request, 'accounts/login.html')
     else:
-        error="Preencha Tudo"                
-    return render(request, 'accounts/login.html', {'error':error})                
+        messages.error(request, "Preencha todos o campos")       
+        return render(request, 'accounts/login.html')
+    return render(request, 'accounts/login.html')                
                 
 def logout_view(request):
     logout(request)    
