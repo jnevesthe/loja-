@@ -57,7 +57,7 @@
 <div class="hero-section profile-section">
     <!-- FOTO DE PERFIL -->
     <div class="profile-photo">
-        {% if request.user.foto_perfil %}
+        {% if request.user.photo %}
             <img src="{{ request.user.photo.url }}" alt="Foto de perfil">
         {% else %}
             <img src="{% static 'img/profile.png' %}" alt="Foto padrão">
