@@ -3,29 +3,103 @@
 {% block title %}Loja{% endblock %}
 
 <style>
-    .cart-container {
-    position: fixed; /* fixo no body/viewport */
-    top: 20px;       /* distância do topo */
-    right: 20px;     /* distância da direita */
-    width: 250px;    /* largura do carrinho */
+/* Estilo geral */
+.hero-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Carrinho lateral */
+.cart-container {
+    position: fixed;
+    top: 0;
+    right: -300px; /* começa escondido */
+    width: 300px;
+    height: 100%;
     background: #fff;
+    border-left: 2px solid #ccc;
+    padding: 20px;
+    box-shadow: -4px 0 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    transition: right 0.3s ease; /* animação */
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-container.active {
+    right: 0; /* aparece deslizando */
+}
+
+.cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+/* Overlay */
+#overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 900;
+}
+
+/* Produtos */
+.product-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.product-card {
     border: 1px solid #ccc;
-    border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    z-index: 1000;   /* garante que fica acima de outros elementos */
-    }
+    border-radius: 8px;
+    text-align: center;
+    width: 220px;
+    background: #f9f9f9;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+.btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.btn:hover {
+    background: #218838;
+}
 </style>
 
 {% block main %}
 <h2 class="hero-section">Produtos Disponíveis</h2>
-
 
 <!-- Barra de Pesquisa -->
 <div style="text-align:center; margin-bottom:20px;">
     <input type="text" id="search-bar" placeholder="Buscar produto..." style="padding:10px; width:60%; max-width:400px; border:1px solid #ccc; border-radius:5px;">
 </div>
 
+<!-- Produtos -->
 <div class="product-container" id="product-container">
     {% for product in products %}
     <div class="product-card" data-name="{{ product.name|lower }}">
@@ -34,13 +108,8 @@
         {% endif %}
         <h3>{{ product.name }} - R$ {{ product.price }}</h3>
         <p class="short-desc">{{ product.description|truncatechars:50 }}</p>
-
-        <!-- Botão Ver Mais -->
         <a href="{% url 'detail' product.id %}" class="btn">Ver mais</a>
-        <br/>
-        <br/>
-
-        <!-- Botão Adicionar ao Carrinho -->
+        <br><br>
         <button type="button" class="btn add-cart" 
             data-id="{{ product.id }}" 
             data-name="{{ product.name }}" 
@@ -51,9 +120,20 @@
     {% endfor %}
 </div>
 
+<!-- Botão Carrinho -->
+<button id="toggle-cart" class="btn" style="position:fixed; top:20px; right:20px; z-index:1100;">
+    🛒 Carrinho (<span id="cart-count">0</span>)
+</button>
+
+<!-- Overlay -->
+<div id="overlay"></div>
+
 <!-- Carrinho -->
-<div class="cart-container">
-    <h3>Carrinho</h3>
+<div id="cart-container" class="cart-container">
+    <div class="cart-header">
+        <h3>Carrinho</h3>
+        <button id="close-cart" class="close-btn">✖</button>
+    </div>
     <ul id="cart-items"></ul>
     <p><strong>Total:</strong> R$ <span id="cart-total">0.00</span></p>
     <button id="finalize-cart" class="btn">Finalizar Pedido</button>
@@ -64,34 +144,61 @@ document.addEventListener('DOMContentLoaded', () => {
     let cart = [];
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
+    const cartCount = document.getElementById('cart-count');
     const searchBar = document.getElementById('search-bar');
+    const cartContainer = document.getElementById('cart-container');
+    const overlay = document.getElementById('overlay');
+    const toggleCartBtn = document.getElementById('toggle-cart');
+    const closeCartBtn = document.getElementById('close-cart');
 
     function updateCart() {
         cartItems.innerHTML = '';
         let total = 0;
+        let quantitySum = 0;
+
         cart.forEach(item => {
             const li = document.createElement('li');
             li.textContent = `${item.name} x ${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`;
             cartItems.appendChild(li);
             total += item.price * item.quantity;
+            quantitySum += item.quantity;
         });
+
         cartTotal.textContent = total.toFixed(2);
+        cartCount.textContent = quantitySum; // contador no botão
     }
 
+    // Mostrar carrinho
+    toggleCartBtn.addEventListener('click', () => {
+        cartContainer.classList.add('active');
+        overlay.style.display = 'block';
+    });
+
+    // Fechar carrinho
+    function closeCart() {
+        cartContainer.classList.remove('active');
+        overlay.style.display = 'none';
+    }
+    closeCartBtn.addEventListener('click', closeCart);
+    overlay.addEventListener('click', closeCart);
+
+    // Adicionar produto ao carrinho
     document.querySelectorAll('.add-cart').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = btn.dataset.id;
             const name = btn.dataset.name;
             const price = parseFloat(btn.dataset.price);
             const existing = cart.find(item => item.id === id);
+
             if (existing) {
                 existing.quantity += 1;
             } else {
-                cart.push({id, name, price, quantity: 1});
+                cart.push({ id, name, price, quantity: 1 });
             }
+
             updateCart();
 
-            // Salva o pedido no banco via AJAX
+            // Salvar no backend via AJAX
             fetch("{% url 'add_to_cart' 0 %}".replace('0', id), {
                 method: 'POST',
                 headers: {
@@ -100,22 +207,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ quantity: 1 })
             }).then(response => response.json())
-            .then(data => {
-                console.log('Pedido adicionado:', data);
-            });
+            .then(data => console.log('Pedido adicionado:', data));
         });
     });
 
     // Finalizar pedido com checagem de login
     document.getElementById('finalize-cart').addEventListener('click', () => {
         const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
-
         if (!isAuthenticated) {
-            // Redireciona para login com ?next para voltar depois
             window.location.href = "{% url 'login' %}?next={% url 'list' %}";
         } else {
             alert('Pedidos adicionados com sucesso!');
-            // Aqui você pode redirecionar para a página de pedidos ou perfil
             window.location.href = "{% url 'profile' %}";
         }
     });
