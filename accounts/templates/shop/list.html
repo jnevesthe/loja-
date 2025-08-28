@@ -3,7 +3,7 @@
 {% block title %}Loja{% endblock %}
 
 <style>
-/* Estilo geral */
+/* Estilos gerais */
 .hero-section {
     text-align: center;
     margin-bottom: 20px;
@@ -13,21 +13,21 @@
 .cart-container {
     position: fixed;
     top: 0;
-    right: -300px; /* começa escondido */
-    width: 300px;
+    right: -320px;
+    width: 320px;
     height: 100%;
     background: #fff;
     border-left: 2px solid #ccc;
     padding: 20px;
     box-shadow: -4px 0 8px rgba(0,0,0,0.3);
     z-index: 1000;
-    transition: right 0.3s ease; /* animação */
+    transition: right 0.3s ease;
     display: flex;
     flex-direction: column;
 }
 
 .cart-container.active {
-    right: 0; /* aparece deslizando */
+    right: 0;
 }
 
 .cart-header {
@@ -56,7 +56,20 @@
     z-index: 900;
 }
 
-/* Produtos */
+/* Lista de produtos no carrinho */
+#cart-items li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+.cart-item-controls button {
+    margin: 0 4px;
+    padding: 4px 8px;
+}
+
+/* Produtos da loja */
 .product-container {
     display: flex;
     flex-wrap: wrap;
@@ -89,6 +102,15 @@
 .btn:hover {
     background: #218838;
 }
+
+/* Animação do contador */
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+.bounce {
+    animation: bounce 0.3s ease;
+}
 </style>
 
 {% block main %}
@@ -99,7 +121,7 @@
     <input type="text" id="search-bar" placeholder="Buscar produto..." style="padding:10px; width:60%; max-width:400px; border:1px solid #ccc; border-radius:5px;">
 </div>
 
-<!-- Produtos -->
+<!-- Lista de Produtos -->
 <div class="product-container" id="product-container">
     {% for product in products %}
     <div class="product-card" data-name="{{ product.name|lower }}">
@@ -141,7 +163,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    let cart = [];
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
     const cartCount = document.getElementById('cart-count');
@@ -151,6 +173,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const toggleCartBtn = document.getElementById('toggle-cart');
     const closeCartBtn = document.getElementById('close-cart');
 
+    function saveCart() {
+        localStorage.setItem('cart', JSON.stringify(cart));
+    }
+
     function updateCart() {
         cartItems.innerHTML = '';
         let total = 0;
@@ -158,15 +184,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cart.forEach(item => {
             const li = document.createElement('li');
-            li.textContent = `${item.name} x ${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`;
+            li.innerHTML = `
+                <span>${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}</span>
+                <div class="cart-item-controls">
+                    <button class="decrease">-</button>
+                    <span>${item.quantity}</span>
+                    <button class="increase">+</button>
+                    <button class="remove">x</button>
+                </div>
+            `;
+
+            // Ações de aumentar, diminuir, remover
+            li.querySelector('.increase').addEventListener('click', () => {
+                item.quantity++;
+                updateCart();
+            });
+            li.querySelector('.decrease').addEventListener('click', () => {
+                if (item.quantity > 1) {
+                    item.quantity--;
+                } else {
+                    cart = cart.filter(i => i.id !== item.id);
+                }
+                updateCart();
+            });
+            li.querySelector('.remove').addEventListener('click', () => {
+                cart = cart.filter(i => i.id !== item.id);
+                updateCart();
+            });
+
             cartItems.appendChild(li);
             total += item.price * item.quantity;
             quantitySum += item.quantity;
         });
 
         cartTotal.textContent = total.toFixed(2);
-        cartCount.textContent = quantitySum; // contador no botão
+        cartCount.textContent = quantitySum;
+        cartCount.classList.add('bounce');
+        setTimeout(() => cartCount.classList.remove('bounce'), 300);
+
+        saveCart();
     }
+
+    // Inicializa carrinho salvo
+    updateCart();
 
     // Mostrar carrinho
     toggleCartBtn.addEventListener('click', () => {
@@ -191,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const existing = cart.find(item => item.id === id);
 
             if (existing) {
-                existing.quantity += 1;
+                existing.quantity++;
             } else {
                 cart.push({ id, name, price, quantity: 1 });
             }
@@ -227,11 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const term = searchBar.value.toLowerCase();
         document.querySelectorAll('.product-card').forEach(card => {
             const name = card.getAttribute('data-name');
-            if (name.includes(term)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
+            card.style.display = name.includes(term) ? 'block' : 'none';
         });
     });
 });
