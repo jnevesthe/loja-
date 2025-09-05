@@ -3,125 +3,29 @@
 {% block title %}Loja{% endblock %}
 
 <style>
-/* Estilos gerais */
-.hero-section {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-/* Carrinho lateral */
-.cart-container {
-    position: fixed;
-    top: 0;
-    right: -320px;
-    width: 320px;
-    height: 100%;
+    .cart-container {
+    position: fixed; /* fixo no body/viewport */
+    top: 20px;       /* distância do topo */
+    right: 20px;     /* distância da direita */
+    width: 250px;    /* largura do carrinho */
     background: #fff;
-    border-left: 2px solid #ccc;
-    padding: 20px;
-    box-shadow: -4px 0 8px rgba(0,0,0,0.3);
-    z-index: 1000;
-    transition: right 0.3s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.cart-container.active {
-    right: 0;
-}
-
-.cart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-}
-
-/* Overlay */
-#overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 900;
-}
-
-/* Lista de produtos no carrinho */
-#cart-items li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-.cart-item-controls button {
-    margin: 0 4px;
-    padding: 4px 8px;
-}
-
-/* Produtos da loja */
-.product-container {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-}
-
-.product-card {
     border: 1px solid #ccc;
-    padding: 15px;
     border-radius: 8px;
-    text-align: center;
-    width: 220px;
-    background: #f9f9f9;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-.product-card img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
-.btn {
-    background: #28a745;
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.btn:hover {
-    background: #218838;
-}
-
-/* Animação do contador */
-@keyframes bounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.3); }
-}
-.bounce {
-    animation: bounce 0.3s ease;
-}
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 1000;   /* garante que fica acima de outros elementos */
+    }
 </style>
 
 {% block main %}
 <h2 class="hero-section">Produtos Disponíveis</h2>
+
 
 <!-- Barra de Pesquisa -->
 <div style="text-align:center; margin-bottom:20px;">
     <input type="text" id="search-bar" placeholder="Buscar produto..." style="padding:10px; width:60%; max-width:400px; border:1px solid #ccc; border-radius:5px;">
 </div>
 
-<!-- Lista de Produtos -->
 <div class="product-container" id="product-container">
     {% for product in products %}
     <div class="product-card" data-name="{{ product.name|lower }}">
@@ -130,8 +34,13 @@
         {% endif %}
         <h3>{{ product.name }} - R$ {{ product.price }}</h3>
         <p class="short-desc">{{ product.description|truncatechars:50 }}</p>
+
+        <!-- Botão Ver Mais -->
         <a href="{% url 'detail' product.id %}" class="btn">Ver mais</a>
-        <br><br>
+        <br/>
+        <br/>
+
+        <!-- Botão Adicionar ao Carrinho -->
         <button type="button" class="btn add-cart" 
             data-id="{{ product.id }}" 
             data-name="{{ product.name }}" 
@@ -142,20 +51,9 @@
     {% endfor %}
 </div>
 
-<!-- Botão Carrinho -->
-<button id="toggle-cart" class="btn" style="position:fixed; top:20px; right:20px; z-index:1100;">
-    🛒 Carrinho (<span id="cart-count">0</span>)
-</button>
-
-<!-- Overlay -->
-<div id="overlay"></div>
-
 <!-- Carrinho -->
-<div id="cart-container" class="cart-container">
-    <div class="cart-header">
-        <h3>Carrinho</h3>
-        <button id="close-cart" class="close-btn">✖</button>
-    </div>
+<div class="cart-container">
+    <h3>Carrinho</h3>
     <ul id="cart-items"></ul>
     <p><strong>Total:</strong> R$ <span id="cart-total">0.00</span></p>
     <button id="finalize-cart" class="btn">Finalizar Pedido</button>
@@ -163,102 +61,37 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let cart = [];
     const cartItems = document.getElementById('cart-items');
     const cartTotal = document.getElementById('cart-total');
-    const cartCount = document.getElementById('cart-count');
     const searchBar = document.getElementById('search-bar');
-    const cartContainer = document.getElementById('cart-container');
-    const overlay = document.getElementById('overlay');
-    const toggleCartBtn = document.getElementById('toggle-cart');
-    const closeCartBtn = document.getElementById('close-cart');
-
-    function saveCart() {
-        localStorage.setItem('cart', JSON.stringify(cart));
-    }
 
     function updateCart() {
         cartItems.innerHTML = '';
         let total = 0;
-        let quantitySum = 0;
-
         cart.forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `
-                <span>${item.name} - R$ ${(item.price * item.quantity).toFixed(2)}</span>
-                <div class="cart-item-controls">
-                    <button class="decrease">-</button>
-                    <span>${item.quantity}</span>
-                    <button class="increase">+</button>
-                    <button class="remove">x</button>
-                </div>
-            `;
-
-            // Ações de aumentar, diminuir, remover
-            li.querySelector('.increase').addEventListener('click', () => {
-                item.quantity++;
-                updateCart();
-            });
-            li.querySelector('.decrease').addEventListener('click', () => {
-                if (item.quantity > 1) {
-                    item.quantity--;
-                } else {
-                    cart = cart.filter(i => i.id !== item.id);
-                }
-                updateCart();
-            });
-            li.querySelector('.remove').addEventListener('click', () => {
-                cart = cart.filter(i => i.id !== item.id);
-                updateCart();
-            });
-
+            li.textContent = `${item.name} x ${item.quantity} - R$ ${(item.price * item.quantity).toFixed(2)}`;
             cartItems.appendChild(li);
             total += item.price * item.quantity;
-            quantitySum += item.quantity;
         });
-
         cartTotal.textContent = total.toFixed(2);
-        cartCount.textContent = quantitySum;
-        cartCount.classList.add('bounce');
-        setTimeout(() => cartCount.classList.remove('bounce'), 300);
-
-        saveCart();
     }
 
-    // Inicializa carrinho salvo
-    updateCart();
-
-    // Mostrar carrinho
-    toggleCartBtn.addEventListener('click', () => {
-        cartContainer.classList.add('active');
-        overlay.style.display = 'block';
-    });
-
-    // Fechar carrinho
-    function closeCart() {
-        cartContainer.classList.remove('active');
-        overlay.style.display = 'none';
-    }
-    closeCartBtn.addEventListener('click', closeCart);
-    overlay.addEventListener('click', closeCart);
-
-    // Adicionar produto ao carrinho
     document.querySelectorAll('.add-cart').forEach(btn => {
         btn.addEventListener('click', () => {
             const id = btn.dataset.id;
             const name = btn.dataset.name;
             const price = parseFloat(btn.dataset.price);
             const existing = cart.find(item => item.id === id);
-
             if (existing) {
-                existing.quantity++;
+                existing.quantity += 1;
             } else {
-                cart.push({ id, name, price, quantity: 1 });
+                cart.push({id, name, price, quantity: 1});
             }
-
             updateCart();
 
-            // Salvar no backend via AJAX
+            // Salva o pedido no banco via AJAX
             fetch("{% url 'add_to_cart' 0 %}".replace('0', id), {
                 method: 'POST',
                 headers: {
@@ -267,17 +100,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ quantity: 1 })
             }).then(response => response.json())
-            .then(data => console.log('Pedido adicionado:', data));
+            .then(data => {
+                console.log('Pedido adicionado:', data);
+            });
         });
     });
 
     // Finalizar pedido com checagem de login
     document.getElementById('finalize-cart').addEventListener('click', () => {
         const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+
         if (!isAuthenticated) {
+            // Redireciona para login com ?next para voltar depois
             window.location.href = "{% url 'login' %}?next={% url 'list' %}";
         } else {
             alert('Pedidos adicionados com sucesso!');
+            // Aqui você pode redirecionar para a página de pedidos ou perfil
             window.location.href = "{% url 'profile' %}";
         }
     });
@@ -287,7 +125,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const term = searchBar.value.toLowerCase();
         document.querySelectorAll('.product-card').forEach(card => {
             const name = card.getAttribute('data-name');
-            card.style.display = name.includes(term) ? 'block' : 'none';
+            if (name.includes(term)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
         });
     });
 });
